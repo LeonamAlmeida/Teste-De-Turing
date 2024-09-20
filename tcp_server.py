@@ -43,8 +43,8 @@ def get_user_file(username):
     return os.path.join(USER_DATA_DIR, f"{username}.json")
 
 def call_gpt_api(user_input):
-    user_input = f"{user_input}\nPor favor responda de forma sussinta da forma mais aproximada a uma resposta humana"
     url = "https://chatgpt-42.p.rapidapi.com/conversationgpt4-2"
+    user_input = f"{user_input}\nPor favor responda de maneira sucinta, da forma mais aproximada a uma resposta humana"
     headers = {
         "x-rapidapi-key": "11a7f49ecbmsh32f82601c876a89p18456djsn1fec454f8b02",
         "x-rapidapi-host": "chatgpt-42.p.rapidapi.com",
