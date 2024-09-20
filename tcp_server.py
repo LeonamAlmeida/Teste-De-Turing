@@ -101,18 +101,6 @@ def save_user_data_ravendb(username, user_input, response, choice, correct):
 def save_user_data(username, user_input, response, choice, correct):
     save_user_data_ravendb(username, user_input, response, choice, correct)
 
-# Função para carregar arquivos JSON de todos os usuários
-def load_files():
-    if os.path.exists(USER_DATA_DIR):
-        for file_name in os.listdir(USER_DATA_DIR):
-            if file_name.endswith(".json"):
-                with open(os.path.join(USER_DATA_DIR, file_name), "r", encoding="utf-8") as file:
-                    user_data = json.load(file)
-                    username = user_data["username"]
-                    user_stats[username]["total"] = user_data["total"]
-                    user_stats[username]["correct"] = user_data["correct"]
-        print("Dados de usuários carregados.")
-
 def on_new_client(clientsocket, addr, mode, delay, username):
     try:
         while True:
@@ -219,7 +207,6 @@ class ServerGUI:
         self.stop_button.configure(state=NORMAL)
 
     def run_server(self):
-        load_files()
         mode = self.mode.get()
         delay = self.delay.get()
         
