@@ -43,6 +43,7 @@ def get_user_file(username):
     return os.path.join(USER_DATA_DIR, f"{username}.json")
 
 def call_gpt_api(user_input):
+    user_input = f"{user_input}\nPor favor responda de forma sussinta da forma mais aproximada a uma resposta humana"
     url = "https://chatgpt-42.p.rapidapi.com/conversationgpt4-2"
     headers = {
         "x-rapidapi-key": "11a7f49ecbmsh32f82601c876a89p18456djsn1fec454f8b02",
@@ -110,8 +111,6 @@ def on_new_client(clientsocket, addr, mode, delay, username):
                 break
             user_input = data.decode('utf-8').strip()
             app.log(f"Pergunta: {user_input}")
-
-            user_input = f"{user_input}\nPor favor responda de forma sussinta da forma mais aproximada a uma resposta humana"
 
             if mode == "automatico":
                 time.sleep(delay)
