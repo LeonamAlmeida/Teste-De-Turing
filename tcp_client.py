@@ -43,7 +43,7 @@ question_frame.pack(pady=10, padx=10, fill=X)
 ttk.Label(question_frame, text="Sua pergunta:", font=("Arial", 12)).pack(side=LEFT, padx=5)
 question_entry = ttk.Entry(question_frame, width=40, font=("Arial", 12))
 question_entry.pack(side=LEFT, fill=X, expand=TRUE, padx=5)
-send_question_button = ttk.Button(question_frame, text="Enviar Pergunta", style="primary.TButton", command=lambda: threading.Thread(target=send_question).start())
+send_question_button = ttk.Button(question_frame, text="Enviar Pergunta", state=DISABLED, style="primary.TButton", command=lambda: threading.Thread(target=send_question).start())
 send_question_button.pack(side=LEFT, padx=10)
 
 # Área de resposta
@@ -65,7 +65,7 @@ guess_frame.pack(pady=10)
 ttk.Label(guess_frame, text="Acha que foi Humano ou IA?", font=("Arial", 12)).pack(side=LEFT, padx=5)
 guess_combobox = ttk.Combobox(guess_frame, values=["humano", "ia"], font=("Arial", 12), state="readonly")
 guess_combobox.pack(side=LEFT, padx=5)
-send_response_button = ttk.Button(guess_frame, text="Enviar Resposta", style="primary.TButton", command=lambda: threading.Thread(target=send_response).start())
+send_response_button = ttk.Button(guess_frame, text="Enviar Resposta", style="primary.TButton", state=DISABLED, command=lambda: threading.Thread(target=send_response).start())
 send_response_button.pack(side=LEFT, padx=10)
 
 # Status e contadores
@@ -89,13 +89,16 @@ correct_guesses_label.pack(side=LEFT, padx=10)
 action_frame = ttk.Frame(central_frame)
 action_frame.pack(pady=10)
 
-new_question_button = ttk.Button(action_frame, text="Nova Pergunta", style="primary.TButton", command=lambda: clear_question())
+new_question_button = ttk.Button(action_frame, state=NORMAL, text="Nova Pergunta", style="primary.TButton", command=lambda: clear_question())
 new_question_button.pack(side=LEFT, padx=10)
 close_button = ttk.Button(action_frame, text="Encerrar", style="danger.TButton", command=lambda: close_client())
 close_button.pack(side=LEFT, padx=10)
 
 # Funções de comunicação com o servidor
 def send_username():
+    send_question_button.configure(state=NORMAL)
+    send_username_button.configure(state=DISABLED)
+
     global s
     if not username.get():
         status_label.config(text="Por favor, insira um nome de usuário.")
@@ -108,10 +111,14 @@ def send_username():
         status_label.config(text="Nome enviado. Agora, você pode enviar perguntas.")
     except socket.error as sock_err:
         status_label.config(text=f"Erro de socket: {sock_err}")
+        clear_question()
     except Exception as error:
         status_label.config(text=f"Erro ao conectar ao servidor: {error}")
+        clear_question()
 
 def send_question():
+    send_question_button.configure(state=DISABLED)
+
     global s
     if not s:
         status_label.config(text="Não há conexão com o servidor. Envie o nome primeiro.")
@@ -128,10 +135,15 @@ def send_question():
         texto_recebido = data.decode('utf-8')
         response_text.delete("1.0", END)
         response_text.insert(END, texto_recebido)
+
+        send_response_button.configure(state=NORMAL)
     except socket.error as sock_err:
         status_label.config(text=f"Erro de socket: {sock_err}")
+        clear_question()
 
 def send_response():
+    send_response_button.configure(state=DISABLED)
+
     global s, total_ia, total_human, correct_guesses
 
     if not s:
@@ -159,10 +171,16 @@ def send_response():
         update_labels()
     except socket.error as sock_err:
         status_label.config(text=f"Erro de socket: {sock_err}")
+        clear_question()
 
 def clear_question():
+    username_entry.delete(0, END)
     question_entry.delete(0, END)
     response_text.delete("1.0", END)
+
+    send_username_button.configure(state=NORMAL)
+    send_question_button.configure(state=DISABLED)
+    send_response_button.configure(state=DISABLED)
 
 def close_client():
     if s:
