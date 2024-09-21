@@ -1,6 +1,5 @@
 import os
 import socket
-import sys
 import time
 import threading
 import requests
@@ -18,7 +17,7 @@ class UserDocument:
         self.Correct = correct
         self.Accuracy = accuracy
 
-store = DocumentStore(urls=["http://localhost:8080"], database="Redes1")
+store = DocumentStore(urls=["http://localhost:8080"], database="BD2")
 store.initialize()
 
 HOST = '127.0.0.1'
@@ -27,20 +26,6 @@ BUFFER_SIZE = 1024
 
 history = []
 user_stats = defaultdict(lambda: {"total": 0, "correct": 0})
-
-# Diretório do script
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Diretório específico para salvar arquivos JSON dos usuários
-USER_DATA_DIR = os.path.join(BASE_DIR, "user_data")
-
-# Criar a pasta "user_data" se não existir
-if not os.path.exists(USER_DATA_DIR):
-    os.makedirs(USER_DATA_DIR)
-
-# Caminho base para os arquivos JSON de cada usuário
-def get_user_file(username):
-    return os.path.join(USER_DATA_DIR, f"{username}.json")
 
 def call_gpt_api(user_input):
     url = "https://chatgpt-42.p.rapidapi.com/conversationgpt4-2"
@@ -64,39 +49,36 @@ def call_gpt_api(user_input):
     return result
 
 def save_user_data_ravendb(username, user_input, response, choice, correct):
-    user_file = get_user_file(username)
-    user_data = {
-        "username": username,
-        "history": [],
-        "total": 0,
-        "correct": 0,
-        "accuracy": 0.0
-    }
-    if os.path.exists(user_file):
-        with open(user_file, "r", encoding="utf-8") as file:
-            user_data = json.load(file)
-    user_data["history"].append({
-        "question": user_input,
-        "response": response,
-        "choice": choice,
-        "correct": correct
-    })
-    user_data["total"] += 1
-    if correct:
-        user_data["correct"] += 1
-    user_data["accuracy"] = (user_data["correct"] / user_data["total"]) * 100 if user_data["total"] > 0 else 0
-
-    user_document = UserDocument(
-        username=user_data["username"],
-        history=user_data["history"],
-        total=user_data["total"],
-        correct=user_data["correct"],
-        accuracy=user_data["accuracy"]
-    )
-
     with store.open_session() as session:
-        session.store(user_document)
+        # Tentar carregar o documento do usuário no RavenDB
+        user_document = session.load(f"users/{username}")
+
+        # Se o documento não existir, inicializa os dados
+        if user_document is None:
+            user_document = UserDocument(
+                username=username,
+                history=[],
+                total=0,
+                correct=0,
+                accuracy=0.0
+            )
+
+        # Atualiza os dados do usuário
+        user_document.History.append({
+            "question": user_input,
+            "response": response,
+            "choice": choice,
+            "correct": correct
+        })
+        user_document.Total += 1
+        if correct:
+            user_document.Correct += 1
+        user_document.Accuracy = (user_document.Correct / user_document.Total) * 100 if user_document.Total > 0 else 0
+
+        # Salvar ou atualizar o documento no RavenDB
+        session.store(user_document, f"users/{username}")
         session.save_changes()
+
     print("Dados do usuário armazenados com sucesso no RavenDB.")
 
 def save_user_data(username, user_input, response, choice, correct):
