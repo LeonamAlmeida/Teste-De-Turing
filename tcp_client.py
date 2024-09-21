@@ -1,23 +1,12 @@
 import os
 import socket
 import threading
+import consulta_cliente
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.style import Style
 from tkinter import END, LEFT, X, StringVar, CENTER
 from pyravendb.store.document_store import DocumentStore
-
-class UserDocument:
-    def __init__(self, username, history, total, correct, accuracy):
-        self.Username = username
-        self.History = history
-        self.Total = total
-        self.Correct = correct
-        self.Accuracy = accuracy
-
-# Inicialize o DocumentStore
-store = DocumentStore(urls=["http://localhost:8080"], database="Redes1")
-store.initialize()
 
 HOST = '127.0.0.1'
 PORT = 20000
@@ -34,6 +23,11 @@ total_ia = 0
 total_human = 0
 correct_guesses = 0
 s = None
+
+quantidade_de_perguntas_dados = 0
+precisao_dados = 0
+respostas_corretas_dados = 0
+user_log = ""
 
 # Estilização da interface
 label = ttk.Label(app, text="Cliente TCP", font=("Arial", 20, "bold"))
@@ -123,12 +117,15 @@ data_frame.pack(side="top", anchor="nw",pady=10, padx=10)
 data_text = ttk.Text(data_frame, height=20, width=83, font=("Arial", 12))  # Aumentando a largura para 80
 data_text.pack(padx=5)
 
-teste1 = ttk.Label(data_frame, text="dado 1: 0", font=("Arial", 12))
-teste1.pack(side=LEFT, padx=10)
-teste2 = ttk.Label(data_frame, text="dado 2: 0", font=("Arial", 12))
-teste2.pack(side=LEFT, padx=10)
-teste3 = ttk.Label(data_frame, text="dado 3: 0", font=("Arial", 12))
-teste3.pack(side=LEFT, padx=10)
+historico_text = ttk.Text(data_text, height=20, width=83, font=("Arial", 12))  # Aumentando a largura para 80
+historico_text.pack(padx=5)
+
+quantidade_de_perguntas = ttk.Label(data_frame, text=f"Quantidade de perguntas: {quantidade_de_perguntas_dados}", font=("Arial", 12))
+quantidade_de_perguntas.pack(side=LEFT, padx=10)
+respostas_corretas = ttk.Label(data_frame, text=f"Acertos: {respostas_corretas_dados}", font=("Arial", 12))
+respostas_corretas.pack(side=LEFT, padx=10)
+precisao = ttk.Label(data_frame, text=f"Precisão: {precisao_dados}%", font=("Arial", 12))
+precisao.pack(side=LEFT, padx=10)
 
 # Botão para voltar à tela principal
 voltar_button = ttk.Button(perfil_frame, text="Voltar", command=lambda: voltar())
@@ -136,11 +133,8 @@ voltar_button.pack(pady=20, side="top", anchor="nw")
 
 # Funções de comunicação com o servidor
 def send_username():
-    send_question_button.configure(state=NORMAL)
-    perfil_buttom.configure(state=NORMAL)
-    send_username_button.configure(state=DISABLED)
-
     global s
+
     if not username.get():
         status_label.config(text="Por favor, insira um nome de usuário.")
         return
@@ -149,6 +143,11 @@ def send_username():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
         s.send(username.get().encode())
+
+        send_question_button.configure(state=NORMAL)
+        perfil_buttom.configure(state=NORMAL)
+        send_username_button.configure(state=DISABLED)
+
         status_label.config(text="Nome enviado. Agora, você pode enviar perguntas.")
     except socket.error as sock_err:
         status_label.config(text=f"Erro de socket: {sock_err}")
@@ -216,6 +215,26 @@ def send_response():
 
 # Função para mostrar a tela de perfil
 def show_perfil():
+    global quantidade_de_perguntas_dados
+    global respostas_corretas_dados
+    global precisao_dados
+
+    consulta_cliente.consulta_documento(username.get())
+    quantidade_de_perguntas_dados = consulta_cliente.retorna_quantidade_perguntas()
+    respostas_corretas_dados = consulta_cliente.retorna_quantidade_acertos()
+    precisao_dados = consulta_cliente.retorna_precisao()
+    historico = consulta_cliente.retorna_user_log()
+
+    # Atualizando o texto do Label para refletir a nova quantidade de perguntas
+    quantidade_de_perguntas.config(text=f"Quantidade de perguntas: {quantidade_de_perguntas_dados}")
+
+    respostas_corretas.config(text=f"Acertos: {respostas_corretas_dados}")
+
+    precisao.config(text=f"Precisão: {precisao_dados:.2f}%")
+
+    historico_text.delete("1.0", END)
+    historico_text.insert(END, historico)
+
     # Esconde o frame principal e mostra o frame de perfil
     username_frame.pack_forget()
     question_frame.pack_forget()
