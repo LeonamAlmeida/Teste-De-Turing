@@ -15,6 +15,6 @@ store.initialize()
 
 with store.open_session() as session:
     # Consulta onde o campo Username é igual a "Pedro"
-    query_result = list(session.query(UserDocument).where_equals("Username", "Jeraldo"))
+    query_result = list(session.query(UserDocument).where_equals("Username", "Pedro"))
     for doc in query_result:
         print(f"Username: {doc.Username}, Total: {doc.Total}, Correct: {doc.Correct}, Accuracy: {doc.Accuracy}")
