@@ -16,7 +16,7 @@ class UserDocument:
         self.Accuracy = accuracy
 
 # Inicialize o DocumentStore
-store = DocumentStore(urls=["http://localhost:8080"], database="Redes1")
+store = DocumentStore(urls=["http://localhost:8080"], database="BD2")
 store.initialize()
 
 HOST = '127.0.0.1'
