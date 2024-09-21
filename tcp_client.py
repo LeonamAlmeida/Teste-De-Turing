@@ -5,6 +5,19 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.style import Style
 from tkinter import END, LEFT, X, StringVar, CENTER
+from pyravendb.store.document_store import DocumentStore
+
+class UserDocument:
+    def __init__(self, username, history, total, correct, accuracy):
+        self.Username = username
+        self.History = history
+        self.Total = total
+        self.Correct = correct
+        self.Accuracy = accuracy
+
+# Inicialize o DocumentStore
+store = DocumentStore(urls=["http://localhost:8080"], database="Redes1")
+store.initialize()
 
 HOST = '127.0.0.1'
 PORT = 20000
@@ -28,27 +41,35 @@ label.pack(pady=10)
 
 # Frame para o nome do usuário
 username_frame = ttk.Frame(app)
-username_frame.pack(pady=10, padx=10, fill=X)
+username_frame.pack(side="top", anchor="nw", padx=10, pady=10, fill=X)
 
-ttk.Label(username_frame, text="Nome:").pack(side=LEFT, padx=5)
+#frameDePerfil
+perfil_frame = ttk.Frame(app)
+
+#Frame de login
+ttk.Label(username_frame, text="Nome:             ", font=("Arial", 12)).pack(side=LEFT, padx=5)
 username_entry = ttk.Entry(username_frame, textvariable=username, width=30, font=("Arial", 12))
 username_entry.pack(side=LEFT, fill=X, expand=TRUE, padx=5)
-send_username_button = ttk.Button(username_frame, text="Enviar Nome", style="primary.TButton", command=lambda: send_username())
+
+send_username_button = ttk.Button(username_frame, text="Login", style="primary.TButton",width=6, command=lambda: send_username())
 send_username_button.pack(side=LEFT, padx=10)
+
+perfil_buttom = ttk.Button(username_frame, state=DISABLED, text="Perfil", style="primary.TButton",width=6, command=lambda: show_perfil())
+perfil_buttom.pack(side=RIGHT, padx=10)
 
 # Frame para a pergunta
 question_frame = ttk.Frame(app)
-question_frame.pack(pady=10, padx=10, fill=X)
+question_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
 
 ttk.Label(question_frame, text="Sua pergunta:", font=("Arial", 12)).pack(side=LEFT, padx=5)
 question_entry = ttk.Entry(question_frame, width=40, font=("Arial", 12))
 question_entry.pack(side=LEFT, fill=X, expand=TRUE, padx=5)
-send_question_button = ttk.Button(question_frame, text="Enviar Pergunta", state=DISABLED, style="primary.TButton", command=lambda: threading.Thread(target=send_question).start())
+send_question_button = ttk.Button(question_frame, text="Enviar Pergunta", width=20, state=DISABLED, style="primary.TButton", command=lambda: threading.Thread(target=send_question).start())
 send_question_button.pack(side=LEFT, padx=10)
 
 # Área de resposta
 response_frame = ttk.Frame(app)
-response_frame.pack(pady=10, padx=10, fill=X)
+response_frame.pack(side="top", anchor="nw",pady=10, padx=10, fill=X)
 
 
 response_text = ttk.Text(response_frame, height=6, width=80, font=("Arial", 12))  # Aumentando a largura para 80
@@ -94,9 +115,29 @@ new_question_button.pack(side=LEFT, padx=10)
 close_button = ttk.Button(action_frame, text="Encerrar", style="danger.TButton", command=lambda: close_client())
 close_button.pack(side=LEFT, padx=10)
 
+# Área que irá definir os frames do perfil
+data_frame = ttk.Frame(perfil_frame)
+data_frame.pack(side="top", anchor="nw",pady=10, padx=10)
+
+#passar o historico aqui
+data_text = ttk.Text(data_frame, height=20, width=83, font=("Arial", 12))  # Aumentando a largura para 80
+data_text.pack(padx=5)
+
+teste1 = ttk.Label(data_frame, text="dado 1: 0", font=("Arial", 12))
+teste1.pack(side=LEFT, padx=10)
+teste2 = ttk.Label(data_frame, text="dado 2: 0", font=("Arial", 12))
+teste2.pack(side=LEFT, padx=10)
+teste3 = ttk.Label(data_frame, text="dado 3: 0", font=("Arial", 12))
+teste3.pack(side=LEFT, padx=10)
+
+# Botão para voltar à tela principal
+voltar_button = ttk.Button(perfil_frame, text="Voltar", command=lambda: voltar())
+voltar_button.pack(pady=20, side="top", anchor="nw")
+
 # Funções de comunicação com o servidor
 def send_username():
     send_question_button.configure(state=NORMAL)
+    perfil_buttom.configure(state=NORMAL)
     send_username_button.configure(state=DISABLED)
 
     global s
@@ -173,6 +214,34 @@ def send_response():
         status_label.config(text=f"Erro de socket: {sock_err}")
         clear_question()
 
+# Função para mostrar a tela de perfil
+def show_perfil():
+    # Esconde o frame principal e mostra o frame de perfil
+    username_frame.pack_forget()
+    question_frame.pack_forget()
+    response_frame.pack_forget()
+    central_frame.pack_forget()
+    guess_frame.pack_forget()
+    status_frame.pack_forget()
+    counts_frame.pack_forget()
+    action_frame.pack_forget()
+    perfil_frame.pack(fill=X, expand=True)
+
+# Função para voltar para a tela principal
+def voltar():
+    # Esconde o frame de perfil e mostra o frame principal
+    perfil_frame.pack_forget()
+
+    # Mostra novamente todos os frames da tela principal
+    username_frame.pack(side="top", anchor="nw", padx=10, pady=10, fill=X)
+    question_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
+    response_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
+    central_frame.pack(pady=10, padx=10, anchor=CENTER)
+    guess_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
+    status_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
+    counts_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
+    action_frame.pack(side="top", anchor="nw", pady=10, padx=10, fill=X)
+
 def clear_question():
     username_entry.delete(0, END)
     question_entry.delete(0, END)
@@ -181,6 +250,7 @@ def clear_question():
     send_username_button.configure(state=NORMAL)
     send_question_button.configure(state=DISABLED)
     send_response_button.configure(state=DISABLED)
+    perfil_buttom.configure(state=DISABLED)
 
 def close_client():
     if s:
