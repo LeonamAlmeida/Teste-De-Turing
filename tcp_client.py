@@ -6,7 +6,6 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.style import Style
 from tkinter import END, LEFT, X, StringVar, CENTER
-from pyravendb.store.document_store import DocumentStore
 
 HOST = '127.0.0.1'
 PORT = 20000
@@ -64,7 +63,6 @@ send_question_button.pack(side=LEFT, padx=10)
 # Área de resposta
 response_frame = ttk.Frame(app)
 response_frame.pack(side="top", anchor="nw",pady=10, padx=10, fill=X)
-
 
 response_text = ttk.Text(response_frame, height=6, width=80, font=("Arial", 12))  # Aumentando a largura para 80
 response_text.pack(padx=5)

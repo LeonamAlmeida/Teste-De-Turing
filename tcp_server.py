@@ -1,10 +1,8 @@
-import os
 import socket
 import time
 import threading
 import requests
 from collections import defaultdict
-import json
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from pyravendb.store.document_store import DocumentStore
@@ -27,12 +25,11 @@ BUFFER_SIZE = 1024
 history = []
 user_stats = defaultdict(lambda: {"total": 0, "correct": 0})
 
-
 def call_gpt_api(user_input):
     url = "https://chatgpt-42.p.rapidapi.com/conversationgpt4-2"
     user_input = f"{user_input}\nPor favor responda de maneira sucinta, da forma mais aproximada a uma resposta humana"
     headers = {
-        "x-rapidapi-key": "11a7f49ecbmsh32f82601c876a89p18456djsn1fec454f8b02",
+        "x-rapidapi-key": "63e0dc075bmshc19cabf8603f7abp1d53bdjsnf8ff1645091f",
         "x-rapidapi-host": "chatgpt-42.p.rapidapi.com",
         "Content-Type": "application/json"
     }
@@ -135,7 +132,6 @@ class ServerGUI:
         self.respostas_corretas_dados = 0
         self.precisao_dados = None
 
-
         self.root = root
         self.root.title("Servidor TCP")
         
@@ -152,8 +148,6 @@ class ServerGUI:
         self.perfil_frame = ttk.Frame(self.root, padding=10)
         self.create_perfil_frame()
 
-        
-    
     def create_widgets(self):
         self.config_frame = ttk.Frame(self.root, padding=10)
         self.config_frame.grid(row=0, column=0, sticky=(N, S, E, W))
@@ -192,8 +186,6 @@ class ServerGUI:
         self.choice_button = ttk.Button(self.choice_frame, text="Enviar Escolha", command=self.send_choice, bootstyle=PRIMARY, state=DISABLED)
         self.choice_button.grid(row=2, column=0, columnspan=2, pady=5)
         self.choice_frame.grid(row=2, column=0, padx=10, pady=10)
-        
-
 
     def create_perfil_frame(self):
         self.username_var = ttk.StringVar()
@@ -243,9 +235,11 @@ class ServerGUI:
         self.pesquisa = ttk.Button(frame_perfil_1, text="Pesquisar", command=lambda: self.pesquisa_user(), bootstyle=SUCCESS)
         self.pesquisa.pack(side=RIGHT, padx=10)
 
-        self.delete = ttk.Button(frame_perfil_1, text="Deletar", command=lambda: self.deleta_user(self.username), bootstyle=SUCCESS)
-        self.delete.pack(side=RIGHT, padx=10)
+        self.delete = ttk.Button(frame_perfil_1, text="Deletar", command=lambda: self.deleta_user(self.username), bootstyle=SUCCESS, state=DISABLED)
 
+        self.delete = ttk.Button(frame_perfil_1, text="Deletar", command=lambda: self.deleta_user(self.username), bootstyle=SUCCESS)
+
+        self.delete.pack(side=RIGHT, padx=10)
 
     def pesquisa_user(self):
         self.username = self.username_var.get()
@@ -256,6 +250,11 @@ class ServerGUI:
         precisao_dados = self.retorna_precisao(document)
         historico = self.retorna_user_log(document)
 
+        document = self.consulta_documento(self.username)
+        quantidade_de_perguntas_dados = self.retorna_quantidade_perguntas(document)
+        respostas_corretas_dados = self.retorna_quantidade_acertos(document)
+        precisao_dados = self.retorna_precisao(document)
+        historico = self.retorna_user_log(document)
 
         # Atualizando o texto do Label para refletir a nova quantidade de perguntas
         self.quantidade_de_perguntas.config(text=f"Quantidade de perguntas: {quantidade_de_perguntas_dados}")
@@ -266,6 +265,8 @@ class ServerGUI:
 
         self.historico_text.delete("1.0", END)
         self.historico_text.insert(END, historico)
+
+        self.delete.configure(state=NORMAL)
 
     #Recupera o documento com o nome do user atual
     def consulta_documento(self, username):
@@ -317,8 +318,14 @@ class ServerGUI:
                 if self.document_id!=None:
                     session.delete(self.document_id)  # Exclui o documento
                     session.save_changes()  # Salva as alterações no banco
+
+                    self.historico_text.delete("1.0", END)
+                    self.historico_text.insert(END, f"User {username} deletado")
+            self.delete.configure(state=DISABLED)
+
             self.historico_text.delete("1.0", END)
             self.historico_text.insert(END, f"User {username} deletado")
+
         except Exception as error:
             print(error)
 
@@ -351,7 +358,6 @@ class ServerGUI:
 
             self.historico_text.delete("1.0", END)
             self.historico_text.insert(END, users)
-
 
     def show_perfil(self):
         # Esconde os widgets da interface principal
@@ -489,8 +495,6 @@ class ServerGUI:
             self.choice_button.configure(state=DISABLED)
             self.manual_send_button.configure(state=DISABLED)
 
-
-                
 if __name__ == "__main__":
     root = ttk.Window(themename="superhero")
     app = ServerGUI(root)

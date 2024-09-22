@@ -1,4 +1,3 @@
-# arquivo será removido no futuro
 from pyravendb.store.document_store import DocumentStore
 
 class UserDocument:
