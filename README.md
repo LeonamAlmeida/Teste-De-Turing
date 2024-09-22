@@ -9,10 +9,10 @@ Esse pacote deve ser o único requisito para plataformas "Windows".
 
 ### Linux
 Recomendamos fortemente que você **atualize o sistema operacional Linux** antes de iniciar o servidor RavenDB.  
-Além disso, verifique os pré-requisitos para o .NET no Linux neste [artigo da Microsoft](https://dotnet.microsoft.com/).
+Além disso, verifique os pré-requisitos para o .NET no Linux.
 
 ### MacOS
-Recomendamos fortemente que você **atualize o MacOS** e verifique os pré-requisitos para o .NET no macOS neste [artigo da Microsoft](https://dotnet.microsoft.com/) antes de iniciar o servidor RavenDB.
+Recomendamos fortemente que você **atualize o MacOS** e verifique os pré-requisitos para o .NET no macOS.
 
 ### Baixar o BD
 - Baixe a última versão estável do RavenDB [aqui](https://ravendb.net/download) (6.2.0).
