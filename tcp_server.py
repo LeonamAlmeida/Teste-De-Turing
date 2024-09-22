@@ -131,7 +131,7 @@ class ServerGUI:
         self.quantidade_de_perguntas_dados = 0
         self.respostas_corretas_dados = 0
         self.precisao_dados = None
-
+        
         self.root = root
         self.root.title("Servidor TCP")
         
@@ -236,19 +236,11 @@ class ServerGUI:
         self.pesquisa.pack(side=RIGHT, padx=10)
 
         self.delete = ttk.Button(frame_perfil_1, text="Deletar", command=lambda: self.deleta_user(self.username), bootstyle=SUCCESS, state=DISABLED)
-
-        self.delete = ttk.Button(frame_perfil_1, text="Deletar", command=lambda: self.deleta_user(self.username), bootstyle=SUCCESS)
-
         self.delete.pack(side=RIGHT, padx=10)
+
 
     def pesquisa_user(self):
         self.username = self.username_var.get()
-
-        document = self.consulta_documento(self.username)
-        quantidade_de_perguntas_dados = self.retorna_quantidade_perguntas(document)
-        respostas_corretas_dados = self.retorna_quantidade_acertos(document)
-        precisao_dados = self.retorna_precisao(document)
-        historico = self.retorna_user_log(document)
 
         document = self.consulta_documento(self.username)
         quantidade_de_perguntas_dados = self.retorna_quantidade_perguntas(document)
@@ -318,14 +310,9 @@ class ServerGUI:
                 if self.document_id!=None:
                     session.delete(self.document_id)  # Exclui o documento
                     session.save_changes()  # Salva as alterações no banco
-
                     self.historico_text.delete("1.0", END)
                     self.historico_text.insert(END, f"User {username} deletado")
             self.delete.configure(state=DISABLED)
-
-            self.historico_text.delete("1.0", END)
-            self.historico_text.insert(END, f"User {username} deletado")
-
         except Exception as error:
             print(error)
 
@@ -494,7 +481,7 @@ class ServerGUI:
 
             self.choice_button.configure(state=DISABLED)
             self.manual_send_button.configure(state=DISABLED)
-
+      
 if __name__ == "__main__":
     root = ttk.Window(themename="superhero")
     app = ServerGUI(root)
